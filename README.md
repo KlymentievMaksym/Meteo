@@ -4,3 +4,7 @@ Using arduino ide I creating station that will be announcing temperature and hum
 > https://randomnerdtutorials.com/esp8266-dht11dht22-temperature-and-humidity-web-server-with-arduino-ide/
 
 > https://randomnerdtutorials.com/telegram-esp8266-nodemcu-motion-detection-arduino/
+
+> https://randomnerdtutorials.com/esp8266-nodemcu-date-time-ntp-client-server-arduino/
+
+> https://fontawesome.com/
