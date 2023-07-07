@@ -14,6 +14,8 @@
 #include <WiFiClientSecure.h>
 #include <UniversalTelegramBot.h>
 #include <ArduinoJson.h>
+#include <NTPClient.h>
+#include <WiFiUdp.h>
 
 // Replace with your network credentials
 const char* ssid = "REPLACE_WITH_YOUR_SSID";
@@ -35,6 +37,9 @@ const char* password = "REPLACE_WITH_YOUR_PASSWORD";
 //#define DHTTYPE    DHT11     // DHT 11
 #define DHTTYPE    DHT22     // DHT 22 (AM2302)
 //#define DHTTYPE    DHT21     // DHT 21 (AM2301)
+
+WiFiUDP ntpUDP;
+NTPClient timeClient(ntpUDP, "pool.ntp.org");
 
 DHT dht(DHTPIN, DHTTYPE);
 
@@ -60,35 +65,82 @@ const char index_html[] PROGMEM = R"rawliteral(
   <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
   <style>
     html {
-     font-family: Arial;
-     display: inline-block;
-     margin: 0px auto;
-     text-align: center;
+      height: 100%;
+      padding: 0;
+      overflow: hidden;
+      font-family: Arial;
+      display: inline-block;
+      margin: 0px auto;
+      text-align: center;
     }
-    h2 { font-size: 3.0rem; }
-    p { font-size: 3.0rem; }
+    h2 { 
+      font-size: 3.0rem;
+      color: #ffffff;
+    }
+    p { 
+      font-size: 3.0rem;
+      color: #ffffff; 
+      padding: 0px 16px;
+    }
     .units { font-size: 1.2rem; }
     .dht-labels{
       font-size: 1.5rem;
       vertical-align:middle;
       padding-bottom: 15px;
     }
+    .main-section{
+      margin-top: 24px;
+      display: inline-block;
+    }
+    div{
+      border: 3px solid #F00;
+      opacity: 1;
+    }
+    .welcome {
+      padding-top: 16px;
+      display: inline-flex;
+      align-items: center;
+    }
+    body {
+      background-image: url("https://raw.githubusercontent.com/KlymentievMaksym/Meteo/main/142982-kosmos-liniya-zvezdnyj_sled-astronomicheskij_obekt-nebo-3840x2160.jpg");
+      background-size: cover;
+      background-repeat: no-repeat;
+      color: lightgray;
+      overflow: auto;
+    }
+    
+
   </style>
 </head>
 <body>
-  <h2>ESP8266 DHT Server</h2>
-  <p>
-    <i class="fas fa-thermometer-half" style="color:#059e8a;"></i> 
-    <span class="dht-labels">Temperature</span> 
-    <span id="temperature">%TEMPERATURE%</span>
-    <sup class="units">&deg;C</sup>
-  </p>
-  <p>
-    <i class="fas fa-tint" style="color:#00add6;"></i> 
-    <span class="dht-labels">Humidity</span>
-    <span id="humidity">%HUMIDITY%</span>
-    <sup class="units">%</sup>
-  </p>
+  <section>
+    <div class="welcome">
+      <p>
+        <i class="fas fa-cloud" style="color:#FA2121;"></i> 
+        <h2>Welcome</h2>
+      </p>
+    </div>
+  </section>
+  
+  <section class="main-section">
+    <div style="margin-bottom: 16px;">
+      <p>
+        <i class="fas fa-thermometer-half" style="color:#FA2121;"></i> 
+        <span class="dht-labels">Temperature</span> 
+        <span id="temperature">%TEMPERATURE%</span>
+        <sup class="units">&deg;C</sup>
+      </p>
+    </div>
+    
+    <div>
+      <p>
+        <i class="fas fa-tint" style="color:#FA2121;"></i> 
+        <span class="dht-labels">Humidity</span>
+        <span id="humidity">%HUMIDITY%</span>
+        <sup class="units">%</sup>
+      </p>
+    </div>
+  </section>
 </body>
 <script>
 setInterval(function ( ) {
@@ -127,9 +179,45 @@ String processor(const String& var){
   return String();
 }
 
+const unsigned long BOT_MTBS = 1000; // mean time between scan messages
+
+unsigned long bot_lasttime; // last time messages' scan has been done
+
 X509List cert(TELEGRAM_CERTIFICATE_ROOT);
 WiFiClientSecure client;
 UniversalTelegramBot bot(BOTtoken, client);
+
+void handleNewMessages(int numNewMessages, float t, float h)
+{
+  Serial.print("handleNewMessages ");
+  Serial.println(numNewMessages);
+  
+  String answer;
+  for (int i = 0; i < numNewMessages; i++)
+  {
+    telegramMessage &msg = bot.messages[i];
+    Serial.println("Received " + msg.text);
+    if (msg.text == "/getdata")
+      answer = "Temp: "+ String(t) + "\n" + "Humidity: " + String(h);
+    else if (msg.text == "/about")
+      answer = "All is good here, thanks for asking!";
+    else
+      answer = "Say what?";
+
+    bot.sendMessage(msg.chat_id, answer, "Markdown");
+  }
+}
+
+
+void bot_setup()
+{
+  const String commands = F("["
+                            "{\"command\":\"getdata\",  \"description\":\"Get Temp and Humidity\"},"
+                            "{\"command\":\"about\", \"description\":\"About\"}" // no comma on last command
+                            "]");
+  bot.setMyCommands(commands);
+  //bot.sendMessage("25235518", "Hola amigo!", "Markdown");
+}
 
 void setup(){
   // Serial port for debugging purposes
@@ -151,6 +239,16 @@ void setup(){
   // Print ESP8266 Local IP Address
   Serial.println(WiFi.localIP());
   bot.sendMessage(CHAT_ID, "Bot started up", "");
+
+  timeClient.begin();
+  // Set offset time in seconds to adjust for your timezone, for example:
+  // GMT +1 = 3600
+  // GMT +8 = 28800
+  // GMT -1 = -3600
+  // GMT 0 = 0
+  timeClient.setTimeOffset(10800);
+
+  bot_setup();
 
   // Route for root / web page
   server.on("/", HTTP_GET, [](AsyncWebServerRequest *request){
@@ -196,10 +294,31 @@ void loop(){
       Serial.println(h);
       
     }
-    count ++;
   }
-  if (count == 10) {
-    bot.sendMessage(CHAT_ID, "Temp: " + String(t) + "\n" + "Humid: " + String(h), "");
+  timeClient.update();
+  int currentHour = timeClient.getHours();  
+  if (currentHour == 6 and count == 0 and (t != 0 or h != 0)) {
+    bot.sendMessage(CHAT_ID, "Temp: " + String(t) + "\n" + "Humidity: " + String(h), "");
+    count = 1;
+    Serial.print("Hour: ");
+    Serial.println(currentHour);
+  }
+  else if (currentHour == 0 and count == 1) {
     count = 0;
   }
+
+  if (millis() - bot_lasttime > BOT_MTBS)
+  {
+    int numNewMessages = bot.getUpdates(bot.last_message_received + 1);
+
+    while (numNewMessages)
+    {
+      Serial.println("got response");
+      handleNewMessages(numNewMessages, t, h);
+      numNewMessages = bot.getUpdates(bot.last_message_received + 1);
+    }
+
+    bot_lasttime = millis();
+  }
+
 }
