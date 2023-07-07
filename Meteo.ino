@@ -179,6 +179,9 @@ String processor(const String& var){
   return String();
 }
 
+int neededHour = 6;
+int resetHour = 0;
+
 const unsigned long BOT_MTBS = 1000; // mean time between scan messages
 
 unsigned long bot_lasttime; // last time messages' scan has been done
@@ -187,7 +190,7 @@ X509List cert(TELEGRAM_CERTIFICATE_ROOT);
 WiFiClientSecure client;
 UniversalTelegramBot bot(BOTtoken, client);
 
-void handleNewMessages(int numNewMessages, float t, float h)
+void handleNewMessages(int numNewMessages, int neededHour, float t, float h)
 {
   Serial.print("handleNewMessages ");
   Serial.println(numNewMessages);
@@ -199,6 +202,8 @@ void handleNewMessages(int numNewMessages, float t, float h)
     Serial.println("Received " + msg.text);
     if (msg.text == "/getdata")
       answer = "Temp: "+ String(t) + "\n" + "Humidity: " + String(h);
+    else if (msg.text == "/getneededtime")
+      answer = "The time to send for now is: " + String(neededHour);
     else if (msg.text == "/about")
       answer = "All is good here, thanks for asking!";
     else
@@ -213,6 +218,7 @@ void bot_setup()
 {
   const String commands = F("["
                             "{\"command\":\"getdata\",  \"description\":\"Get Temp and Humidity\"},"
+                            "{\"command\":\"getneededtime\",  \"description\":\"Get time for getting SMS\"},"
                             "{\"command\":\"about\", \"description\":\"About\"}" // no comma on last command
                             "]");
   bot.setMyCommands(commands);
@@ -222,6 +228,7 @@ void bot_setup()
 void setup(){
   // Serial port for debugging purposes
   Serial.begin(9600);
+
   
   configTime(0, 0, "pool.ntp.org");      // get UTC time via NTP
   client.setTrustAnchors(&cert); // Add root certificate for api.telegram.org
@@ -297,13 +304,13 @@ void loop(){
   }
   timeClient.update();
   int currentHour = timeClient.getHours();  
-  if (currentHour == 6 and count == 0 and (t != 0 or h != 0)) {
+  if (currentHour == neededHour and count == 0 and (t != 0 or h != 0)) {
     bot.sendMessage(CHAT_ID, "Temp: " + String(t) + "\n" + "Humidity: " + String(h), "");
     count = 1;
     Serial.print("Hour: ");
     Serial.println(currentHour);
   }
-  else if (currentHour == 0 and count == 1) {
+  else if (currentHour == resetHour and count == 1) {
     count = 0;
   }
 
@@ -314,7 +321,7 @@ void loop(){
     while (numNewMessages)
     {
       Serial.println("got response");
-      handleNewMessages(numNewMessages, t, h);
+      handleNewMessages(numNewMessages, neededHour, t, h);
       numNewMessages = bot.getUpdates(bot.last_message_received + 1);
     }
 
