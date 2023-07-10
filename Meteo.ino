@@ -59,111 +59,146 @@ int count = 0;
 const long interval = 10000;  
 
 const char index_html[] PROGMEM = R"rawliteral(
-<!DOCTYPE HTML><html>
+<!DOCTYPE html>
+<html lang="en">
 <head>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
-  <style>
-    html {
-      height: 100%;
-      padding: 0;
-      overflow: hidden;
-      font-family: Arial;
-      display: inline-block;
-      margin: 0px auto;
-      text-align: center;
-    }
-    h2 { 
-      font-size: 3.0rem;
-      color: #ffffff;
-    }
-    p { 
-      font-size: 3.0rem;
-      color: #ffffff; 
-      padding: 0px 16px;
-    }
-    .units { font-size: 1.2rem; }
-    .dht-labels{
-      font-size: 1.5rem;
-      vertical-align:middle;
-      padding-bottom: 15px;
-    }
-    .main-section{
-      margin-top: 24px;
-      display: inline-block;
-    }
-    div{
-      border: 3px solid #F00;
-      opacity: 1;
-    }
-    .welcome {
-      padding-top: 16px;
-      display: inline-flex;
-      align-items: center;
-    }
-    body {
-      background-image: url("https://raw.githubusercontent.com/KlymentievMaksym/Meteo/main/142982-kosmos-liniya-zvezdnyj_sled-astronomicheskij_obekt-nebo-3840x2160.jpg");
-      background-size: cover;
-      background-repeat: no-repeat;
-      color: lightgray;
-      overflow: auto;
-    }
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+    <title>Document</title>
+    <style>
+        html {
+            height: 100%;
+            padding: 0;
+            overflow: hidden;
+            font-family: Arial;
+            text-align: center;
+        }
+        body {
+            background-image: url("https://raw.githubusercontent.com/KlymentievMaksym/Meteo/main/142982-kosmos-liniya-zvezdnyj_sled-astronomicheskij_obekt-nebo-3840x2160.jpg");
+            background-size: cover;
+            background-repeat: no-repeat;
+            color: lightgray;
+            overflow: auto;
+            display: flex;
+            justify-content: center;
+        }
+        @media screen and (max-width: 1000px){
+            .all-section{
+                background-color: white;
+                padding: 24px 32px;
+                border-radius: 25px;
+                margin-top: 52px;
+            }
+            .welcome-div{
+                background-color: black;
+                border-radius: 25px;
+                display: flex;
+                align-items: center;
+                padding: 0px 28px;
+            }
+            .welcome-paragraph{
+                font-size: 3rem;
+            }
+            .welcome-text {
+                font-size: 3rem;
+            }
+            .main-section-dht22-div{
+                background-color: black;
+                border-radius: 25px;
+                padding: 0px 28px;
+            }
+            .main-section-dht22-paragraph{
+                font-size: 1.5rem;
+                padding: 4px 0px;
+            }
+        }
+        @media screen and (min-width: 1000px){
+            .all-section{
+                background-color: white;
+                padding: 24px 32px;
+                border-radius: 25px;
+                margin-top: 52px;
+            }
+            .welcome-div{
+                background-color: black;
+                border-radius: 25px;
+                display: flex;
+                align-items: center;
+                padding: 0px 28px;
+            }
+            .welcome-paragraph{
+                font-size: 3rem;
+            }
+            .welcome-text {
+                font-size: 3rem;
+            }
+            .main-section-dht22-div{
+                background-color: black;
+                border-radius: 25px;
+                padding: 0px 28px;
+            }
+            .main-section-dht22-paragraph{
+                font-size: 1.5rem;
+                padding: 4px 0px;
+            }
+        }
     
-
-  </style>
+      </style>
 </head>
 <body>
-  <section>
-    <div class="welcome">
-      <p>
-        <i class="fas fa-cloud" style="color:#FA2121;"></i> 
-        <h2>Welcome</h2>
-      </p>
-    </div>
-  </section>
-  
-  <section class="main-section">
-    <div style="margin-bottom: 16px;">
-      <p>
-        <i class="fas fa-thermometer-half" style="color:#FA2121;"></i> 
-        <span class="dht-labels">Temperature</span> 
-        <span id="temperature">%TEMPERATURE%</span>
-        <sup class="units">&deg;C</sup>
-      </p>
-    </div>
-    
-    <div>
-      <p>
-        <i class="fas fa-tint" style="color:#FA2121;"></i> 
-        <span class="dht-labels">Humidity</span>
-        <span id="humidity">%HUMIDITY%</span>
-        <sup class="units">%</sup>
-      </p>
-    </div>
-  </section>
+    <section class="all-section">
+        <section class="title-section">
+            <div class="welcome-div">
+                <p class="welcome-paragraph">
+                    <i class="fas fa-cloud" style="color:#FA2121;"></i> 
+                    <h2 class="welcome-text">Welcome</h2>
+                </p>
+            </div>
+        </section>
+        <section class="main-section">
+            <div class="main-section-dht22-div">
+                <p class="main-section-dht22-paragraph">
+                    <i class="fas fa-thermometer-half" style="color:#FA2121;"></i> 
+                    <span class="main-section-dht22-div-text">Temperature</span> 
+                    <span id="temperature">%TEMPERATURE%</span>
+                    <sup class="units">&deg;C</sup>
+                </p>
+            </div>
+            <div class="main-section-dht22-div">
+                <p class="main-section-dht22-paragraph">
+                    <i class="fas fa-tint" style="color:#FA2121;"></i> 
+                    <span class="main-section-dht22-div-text">Humidity</span>
+                    <span id="humidity">%HUMIDITY%</span>
+                    <sup class="units">%</sup>
+                </p>
+            </div>
+        </section>
+    </section>
 </body>
 <script>
-setInterval(function ( ) {
-  var xhttp = new XMLHttpRequest();
-  xhttp.onreadystatechange = function() {
-    if (this.readyState == 4 && this.status == 200) {
-      document.getElementById("temperature").innerHTML = this.responseText;
-    }
-  };
-  xhttp.open("GET", "/temperature", true);
-  xhttp.send();
-}, 10000 ) ;
-
-setInterval(function ( ) {
-  var xhttp = new XMLHttpRequest();
-  xhttp.onreadystatechange = function() {
-    if (this.readyState == 4 && this.status == 200) {
-      document.getElementById("humidity").innerHTML = this.responseText;
-    }
-  };
-  xhttp.open("GET", "/humidity", true);
-  xhttp.send();
-}, 10000 ) ;
+    setInterval(function ( ) {
+      var xhttp = new XMLHttpRequest();
+      xhttp.onreadystatechange = function() {
+        if (this.readyState == 4 && this.status == 200) {
+          document.getElementById("temperature").innerHTML = this.responseText;
+        }
+      };
+      xhttp.open("GET", "/temperature", true);
+      xhttp.send();
+    }, 10000 ) ;
+    
+    setInterval(function ( ) {
+      var xhttp = new XMLHttpRequest();
+      xhttp.onreadystatechange = function() {
+        if (this.readyState == 4 && this.status == 200) {
+          document.getElementById("humidity").innerHTML = this.responseText;
+        }
+      };
+      xhttp.open("GET", "/humidity", true);
+      xhttp.send();
+    }, 10000 ) ;
 </script>
 </html>)rawliteral";
 
@@ -287,7 +322,6 @@ void loop(){
     }
     else {
       t = newT;
-      Serial.println(t);
       
     }
     // Read Humidity
@@ -298,7 +332,6 @@ void loop(){
     }
     else {
       h = newH;
-      Serial.println(h);
       
     }
   }
@@ -309,6 +342,10 @@ void loop(){
     count = 1;
     Serial.print("Hour: ");
     Serial.println(currentHour);
+    Serial.print("Temp: ");
+    Serial.println(t);
+    Serial.print("Humidity: ");
+    Serial.println(h);
   }
   else if (currentHour == resetHour and count == 1) {
     count = 0;
